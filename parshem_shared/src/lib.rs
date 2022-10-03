@@ -39,6 +39,13 @@ impl ParsingSyntaxTree {
             None               => self.next = Some(Box::new(piece))
         }
     }
+    pub fn gen_snippet(&self) -> String {
+        return self.piece.gen_snippet() +
+            match (&self.next) {
+                Some(next) => next.gen_snippet(),
+                None       => String::new()
+            }.as_str()
+    }
 }
 impl fmt::Display for ParsingSyntaxTree {
     fn fmt(&self, f : &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -61,16 +68,50 @@ pub enum ParsingSyntaxTreePiece {
     Token(String, String),
     Layer(String, String)
 }
+impl ParsingSyntaxTreePiece {
+    pub fn gen_snippet(&self) -> String {
+        return match (self) {
+            ParsingSyntaxTreePiece::OneOf(_options) => {
+                format!("{}",
+                    "let mut snapshot = tokens.snapshot();"
+                )
+            },
+            ParsingSyntaxTreePiece::ZeroOrMore(_piece) => {
+                format!("{}",
+                    "let mut snapshot = tokens.snapshot();"
+                )
+            },
+            ParsingSyntaxTreePiece::OneOrMore(_piece) => {
+                format!("{}",
+                    "let mut snapshot = tokens.snapshot();"
+                )
+            },
+            ParsingSyntaxTreePiece::Optional(_piece) => {
+                format!("{}",
+                    "let mut snapshot = tokens.snapshot();"
+                )
+            },
+            ParsingSyntaxTreePiece::Token(name, args) => {
+                //let missing_token = format!("panic!(\"Missing Token {name}({args})\")");
+                //format!("if tokens.end() {{{missing_token}}}; if ! matches!(tokens.get().get_token(), super::Token::Type::{name}({args})) {{{missing_token}}}; tokens.next();")
+                String::new()
+            },
+            ParsingSyntaxTreePiece::Layer(name, args) => {
+                format!("{name}(tokens, {args});")
+            },
+        }
+    }
+}
 impl fmt::Display for ParsingSyntaxTreePiece {
     fn fmt(&self, f : &mut fmt::Formatter<'_>) -> fmt::Result {
         return write!(f, "{}",
             match (self) {
-                ParsingSyntaxTreePiece::OneOf      (options)    => format!("{{ {} }}", options.iter().map(|o| format!("{}", o)).collect::<Vec<String>>().join(" | ")),
-                ParsingSyntaxTreePiece::ZeroOrMore (piece)      => format!("{{ {} }}*", piece),
-                ParsingSyntaxTreePiece::OneOrMore  (piece)      => format!("{{ {} }}+", piece),
-                ParsingSyntaxTreePiece::Optional   (piece)      => format!("{{ {} }}?", piece),
-                ParsingSyntaxTreePiece::Token      (name, args) => format!("{}[{}]", name, args),
-                ParsingSyntaxTreePiece::Layer      (name, args) => format!("{}({})", name, args)
+                ParsingSyntaxTreePiece::OneOf      (options        ) => format!("{{ {} }}", options.iter().map(|o| format!("{}", o)).collect::<Vec<String>>().join(" | ")),
+                ParsingSyntaxTreePiece::ZeroOrMore (piece          ) => format!("{{ {} }}*", piece),
+                ParsingSyntaxTreePiece::OneOrMore  (piece          ) => format!("{{ {} }}+", piece),
+                ParsingSyntaxTreePiece::Optional   (piece          ) => format!("{{ {} }}?", piece),
+                ParsingSyntaxTreePiece::Token      (name    , args ) => format!("{}[{}]", name, args),
+                ParsingSyntaxTreePiece::Layer      (name    , args ) => format!("{}({})", name, args)
             }
         );
     }
