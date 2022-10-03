@@ -1,0 +1,17 @@
+[package]
+name    = "parshem"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.parshem_proc]
+path = "./parshem_proc/"
+[dependencies.parshem_shared]
+path = "./parshem_shared/"
+
+[workspace]
+members = [
+    "parshem_proc",
+    "parshem_shared"
+]
