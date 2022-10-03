@@ -125,6 +125,10 @@ parser![VesuviusParser(VesuviusTokens) = program {
         {LAngle object_type() {Comma object_type()}* RAngle}?
     };
 
+    test {
+        Identifier[_] LAngle {test()}*
+    };
+
 }];
 
 

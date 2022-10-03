@@ -44,7 +44,7 @@ impl ParsingSyntaxTree {
             match (&self.next) {
                 Some(next) => next.gen_snippet(),
                 None       => String::new()
-            }.as_str()
+            }.as_str();
     }
 }
 impl fmt::Display for ParsingSyntaxTree {
@@ -71,10 +71,20 @@ pub enum ParsingSyntaxTreePiece {
 impl ParsingSyntaxTreePiece {
     pub fn gen_snippet(&self) -> String {
         return match (self) {
-            ParsingSyntaxTreePiece::OneOf(_options) => {
-                format!("{}",
-                    "let mut snapshot = tokens.snapshot();"
-                )
+            ParsingSyntaxTreePiece::OneOf(options) => {
+                let mut snippet = format!("{}{}",
+                    "let mut snapshot = tokens.snapshot();",
+                    "let mut errors = Vec::new();"
+                );
+                for option in options {
+                    snippet += format!("{}{{{}}}{}",
+                        format!("match {{{}}}", option.gen_snippet()),
+                        "Ok(v) => return Ok(v), Err(e) => return Err(e)",
+                        "snapshot.restore();"
+                    ).as_str();
+                }
+                snippet += "Err(super::ParseError::new(super::ParseErrorType::OneOf(Box::new(errors))))";
+                snippet
             },
             ParsingSyntaxTreePiece::ZeroOrMore(_piece) => {
                 format!("{}",
@@ -92,9 +102,8 @@ impl ParsingSyntaxTreePiece {
                 )
             },
             ParsingSyntaxTreePiece::Token(name, args) => {
-                //let missing_token = format!("panic!(\"Missing Token {name}({args})\")");
-                //format!("if tokens.end() {{{missing_token}}}; if ! matches!(tokens.get().get_token(), super::Token::Type::{name}({args})) {{{missing_token}}}; tokens.next();")
-                String::new()
+                let missing_token = format!("Err(super::ParseError::new(super::ParseErrorType::MissingToken(Vec::new(super::Token::Type::{}({})))))", name, args);
+                format!("if tokens.end() {{{missing_token}}} else if ! matches!(tokens.get().get_token(), super::Token::Type::{name}({args})) {{{missing_token}}} else {{tokens.next(); Ok(())}}")
             },
             ParsingSyntaxTreePiece::Layer(name, args) => {
                 format!("{name}(tokens, {args});")

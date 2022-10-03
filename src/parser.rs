@@ -10,12 +10,13 @@ macro_rules! parser {
     => {
         #[allow(non_snake_case)]
         mod $parser_name {
+            use $crate::error::ParseError;
+            use $crate::error::ParseErrorType;
             use super::$($token_type)::* as Token;
             mod rules {$(
                 pub fn $level_name(mut tokens : super::Token::List, $($($level_arg_name : $level_arg_type),*)?) -> Result<(), $crate::error::ParseError<super::Token::Type>> {
                     let expected = Vec::<super::Token::Type>::new();
                     $crate::parshem_proc::generate_rule!({$($rule)+});
-                    Err($crate::error::ParseError::new($crate::error::ParseErrorType::MissingToken(expected)))
                 }
             )*}
             pub fn parse(mut tokens : Token::List) -> Result<(), $crate::error::ParseError<Token::Type>> {

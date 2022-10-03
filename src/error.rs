@@ -25,7 +25,9 @@ impl<T : fmt::Debug> fmt::Display for ParseError<T> {
 
 #[repr(u16)]
 pub enum ParseErrorType<T : fmt::Debug> {
-    MissingToken(Vec<T>)
+    MissingToken(Vec<T>),
+
+    Multiple(Box<Vec<ParseError<T>>>)
 }
 impl<T : fmt::Debug> ParseErrorType<T> {
     fn index(&self) -> u16 {
@@ -44,6 +46,10 @@ impl<T : fmt::Debug> fmt::Display for ParseErrorType<T> {
                     strings.insert(strings.len() - 1, String::from("or"));
                 }
                 format!("Token {} missing.", strings.join(" "))
+            }
+
+            ParseErrorType::Multiple(options) => {
+                format!("{:?}", options.iter().map(|v|format!("{}", v)).collect::<Vec<String>>())
             }
             
         });
