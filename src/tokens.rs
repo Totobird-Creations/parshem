@@ -10,7 +10,7 @@ macro_rules! tokens {
         mod $tokens_name {
             #[derive(Debug)]
             pub enum Type {
-                $($token_name $((Option<$($token_arg_type),+>))?),*
+                $($token_name ($(Option<$($token_arg_type),+>)?)),*
             }
             pub type Position         = $crate::tokens::Position;
             pub type Token            = $crate::tokens::Token<Type>;
@@ -31,6 +31,11 @@ pub struct Token<T> {
     token : T,
     range : (Position, Position)
 }
+impl<T> Token<T> {
+    pub fn get_token(&self) -> &T {
+        return &self.token;
+    }
+}
 pub struct List<T> {
     tokens : Vec<Token<T>>,
     index  : usize
@@ -47,10 +52,13 @@ impl<T> List<T> {
     }
     pub fn next(&mut self) -> Option<&Token<T>> {
         self.set_index(self.index + 1);
-        return self.get();
+        return if (self.end()) {None} else {Some(self.get())}
     }
-    pub fn get(&self) -> Option<&Token<T>> {
-        return self.tokens.get(self.index);
+    pub fn get(&self) -> &Token<T> {
+        return self.tokens.get(self.index).unwrap();
+    }
+    pub fn end(&self) -> bool {
+        return self.index >= self.tokens.len()
     }
     pub fn set_index(&mut self, index : usize) {
         self.index = index;

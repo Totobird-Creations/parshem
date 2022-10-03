@@ -12,13 +12,13 @@ macro_rules! parser {
         mod $parser_name {
             use super::$($token_type)::* as Token;
             mod rules {$(
-                pub fn $level_name(mut tokens : super::Token::List, $($($level_arg_name : $level_arg_type),*)?) -> Result<(), $crate::error::ParseError> {
-                    let mut expected = Vec::new();
+                pub fn $level_name(mut tokens : super::Token::List, $($($level_arg_name : $level_arg_type),*)?) -> Result<(), $crate::error::ParseError<super::Token::Type>> {
+                    let expected = Vec::<super::Token::Type>::new();
                     $crate::parshem_proc::generate_rule!({$($rule)+});
-                    return Err($crate::error::ParseError::MissingToken(expected));
+                    Err($crate::error::ParseError::new($crate::error::ParseErrorType::MissingToken(expected)))
                 }
             )*}
-            pub fn parse(mut tokens : Token::List) -> Result<(), $crate::error::ParseError> {
+            pub fn parse(mut tokens : Token::List) -> Result<(), $crate::error::ParseError<Token::Type>> {
                 tokens.reset();
                 return rules::$entry_level_name(tokens);
             }
